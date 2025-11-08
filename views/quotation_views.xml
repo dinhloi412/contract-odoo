@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Extend Sale Order Form View -->
+  <record id="view_order_form_inherit_quotation" model="ir.ui.view">
+    <field name="name">sale.order.form.inherit.quotation</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="arch" type="xml">
+      
+      <!-- Add Create Contract button -->
+      <xpath expr="//header/button[@name='action_quotation_send']" position="after">
+        <button name="action_create_contract" string="Tạo hợp đồng" type="object" class="oe_highlight" invisible="state not in ['sale', 'done'] or contract_id"/>
+        <button name="action_create_contract" string="Xem hợp đồng" type="object" invisible="not contract_id"/>
+      </xpath>
+      
+      <!-- Add fields after partner_id -->
+      <xpath expr="//field[@name='partner_id']" position="after">
+        <field name="quotation_title"/>
+        <field name="department_id" domain="[('parent_id', '=', partner_id)]"/>
+        <field name="contact_person" domain="[('parent_id', '=', partner_id)]"/>
+      </xpath>
+      
+      <!-- Add new page for Quotation Info -->
+      <xpath expr="//notebook" position="inside">
+        <page string="Thông tin báo giá" name="quotation_info">
+          <group>
+            <group string="Thông tin chung">
+              <field name="quotation_type"/>
+              <field name="opportunity_id"/>
+              <field name="source_id"/>
+            </group>
+            
+            <group string="Hình thức nộp">
+              <field name="quotation_submission_method"/>
+              <field name="submission_date"/>
+              <field name="submitted_by"/>
+            </group>
+          </group>
+          
+          <group>
+            <field name="submission_note" nolabel="1" placeholder="Ghi chú chi tiết về cách nộp, người nhận, hoặc điều kiện đặc biệt..."/>
+          </group>
+          
+          <group>
+            <group string="Điều khoản">
+              <field name="delivery_time"/>
+              <field name="warranty_period"/>
+            </group>
+            
+            <group string="Theo dõi">
+              <field name="sent_date"/>
+              <field name="sent_by"/>
+              <field name="customer_feedback"/>
+            </group>
+          </group>
+          
+          <group>
+            <field name="terms_note" nolabel="1" placeholder="Điều khoản bổ sung hoặc ghi chú riêng..."/>
+            <field name="feedback_note" nolabel="1" placeholder="Ghi lại phản hồi, nội dung đàm phán hoặc lý do từ chối..."/>
+          </group>
+          
+          <group>
+            <group string="Hồ sơ">
+              <field name="quotation_link" widget="url"/>
+            </group>
+            
+            <group string="Liên kết">
+              <field name="contract_id" readonly="1"/>
+            </group>
+          </group>
+        </page>
+      </xpath>
+    </field>
+  </record>
+
+  <!-- Extend Sale Order List View -->
+  <record id="view_quotation_list_inherit" model="ir.ui.view">
+    <field name="name">sale.order.list.inherit.quotation</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_quotation_tree"/>
+    <field name="arch" type="xml">
+      <xpath expr="//field[@name='partner_id']" position="after">
+        <field name="department_id" optional="hide"/>
+        <field name="quotation_type" optional="hide"/>
+      </xpath>
+    </field>
+  </record>
+
+  <!-- Add menu for Quotations under Contract Management -->
+  <record id="action_quotation_list" model="ir.actions.act_window">
+    <field name="name">Báo giá</field>
+    <field name="res_model">sale.order</field>
+    <field name="view_mode">list,form</field>
+    <field name="domain">[('state', 'in', ['draft', 'sent'])]</field>
+    <field name="context">{'default_quotation_submission_method': 'email'}</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">Tạo mới báo giá</p>
+      <p>Quản lý báo giá gửi cho bệnh viện và các khoa/phòng.</p>
+    </field>
+  </record>
+  
+  <menuitem id="menu_quotation" name="Báo giá" parent="menu_contract_root" action="action_quotation_list" sequence="20"/>
+
+</odoo>
+

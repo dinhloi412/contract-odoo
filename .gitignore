@@ -1,0 +1,30 @@
+# Odoo specific files and directories
+/addons/*/static/lib/
+/addons/*/static/src/xml/*.xml.py
+/addons/*/static/src/js/*.js.map
+/addons/*/static/src/scss/*.scss.map
+/data/
+/filestore/
+/log/
+/odoo.conf
+/odoo-server.log
+/openerp-server.log
+/sessions/
+/web/static/lib/
+/web/static/src/xml/*.xml.py
+/web/static/src/js/*.js.map
+/web/static/src/scss/*.scss.map
+
+# Python specific
+*.pyc
+*.pyo
+__pycache__/
+.env
+.venv/
+venv/
+
+# Editor/IDE specific
+.vscode/
+.idea/
+*.swp
+*~

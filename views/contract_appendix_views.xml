@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Contract Appendix Actions -->
+  <record id="action_contract_appendix_list" model="ir.actions.act_window">
+    <field name="name">Phụ lục hợp đồng</field>
+    <field name="res_model">contract.appendix</field>
+    <field name="view_mode">list,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">Tạo mới phụ lục hợp đồng</p>
+      <p>Quản lý các phụ lục bổ sung, điều chỉnh hoặc gia hạn hợp đồng.</p>
+    </field>
+  </record>
+  
+  <menuitem id="menu_contract_appendix" name="Phụ lục" parent="menu_contract_management" action="action_contract_appendix_list" sequence="20"/>
+
+  <!-- Contract Appendix List View -->
+  <record id="view_contract_appendix_list" model="ir.ui.view">
+    <field name="name">contract.appendix.list</field>
+    <field name="model">contract.appendix</field>
+    <field name="arch" type="xml">
+      <list>
+        <field name="appendix_number"/>
+        <field name="name"/>
+        <field name="contract_id"/>
+        <field name="contract_number_display"/>
+        <field name="appendix_type"/>
+        <field name="effective_date"/>
+        <field name="amount_appendix"/>
+        <field name="state" widget="badge" decoration-success="state == 'active'" decoration-info="state == 'draft'" decoration-danger="state == 'cancelled'"/>
+        <field name="owner_id" widget="many2one_avatar_user"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- Contract Appendix Form View -->
+  <record id="view_contract_appendix_form" model="ir.ui.view">
+    <field name="name">contract.appendix.form</field>
+    <field name="model">contract.appendix</field>
+    <field name="arch" type="xml">
+      <form string="Phụ lục hợp đồng">
+        <header>
+          <button name="action_activate" string="Kích hoạt" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+          <button name="action_cancel" string="Hủy" type="object" invisible="state == 'cancelled'"/>
+          <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+        </header>
+        
+        <sheet>
+          <div class="oe_title">
+            <h1>
+              <field name="appendix_number" readonly="1"/>
+            </h1>
+            <label for="name" string="Tên phụ lục"/>
+            <h2>
+              <field name="name" placeholder="Tiêu đề ngắn gọn nêu nội dung điều chỉnh/bổ sung"/>
+            </h2>
+          </div>
+          
+          <group>
+            <group string="Liên kết hợp đồng">
+              <field name="contract_id" options="{'no_create': True}"/>
+              <field name="contract_number_display"/>
+            </group>
+            
+            <group string="Phân loại">
+              <field name="appendix_type"/>
+              <field name="clause_reference"/>
+            </group>
+          </group>
+          
+          <group>
+            <field name="appendix_scope" nolabel="1" placeholder="Mô tả ngắn nội dung thay đổi so với HĐ gốc..."/>
+          </group>
+          
+          <group>
+            <group string="Hiệu lực">
+              <field name="effective_date"/>
+              <field name="end_date"/>
+              <field name="duration_days"/>
+            </group>
+            
+            <group string="Giá trị">
+              <field name="currency_id" invisible="1"/>
+              <field name="amount_appendix" widget="monetary"/>
+              <field name="affects_contract_total"/>
+            </group>
+          </group>
+          
+          <group>
+            <group string="Liên kết đơn bán">
+              <field name="sale_order_id"/>
+            </group>
+            
+            <group string="Quản lý">
+              <field name="owner_id"/>
+              <field name="activated_date" readonly="1"/>
+            </group>
+          </group>
+          
+          <notebook>
+            <page string="Sản phẩm" name="products">
+              <field name="appendix_line_ids">
+                <list editable="bottom">
+                  <field name="sequence" widget="handle"/>
+                  <field name="product_id"/>
+                  <field name="description"/>
+                  <field name="uom_id"/>
+                  <field name="quantity"/>
+                  <field name="currency_id" column_invisible="1"/>
+                  <field name="price_unit" widget="monetary"/>
+                  <field name="change_action"/>
+                  <field name="price_subtotal" widget="monetary" sum="Tổng cộng"/>
+                  <field name="ref_contract_line_id"/>
+                  <field name="sale_order_line_id"/>
+                </list>
+              </field>
+            </page>
+            
+            <page string="Hồ sơ &amp; Ghi chú" name="documents">
+              <group>
+                <group string="Hồ sơ">
+                  <field name="appendix_link" widget="url"/>
+                  <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </group>
+                
+                <group string="Ghi chú giá trị">
+                  <field name="amount_note" nolabel="1" placeholder="Mô tả cách áp dụng (ví dụ: cộng vào đợt kế tiếp...)"/>
+                </group>
+              </group>
+            </page>
+          </notebook>
+        </sheet>
+        
+        <div class="oe_chatter">
+          <field name="message_follower_ids"/>
+          <field name="activity_ids"/>
+          <field name="message_ids"/>
+        </div>
+      </form>
+    </field>
+  </record>
+
+  <!-- Contract Appendix Search View -->
+  <record id="view_contract_appendix_search" model="ir.ui.view">
+    <field name="name">contract.appendix.search</field>
+    <field name="model">contract.appendix</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="appendix_number"/>
+        <field name="name"/>
+        <field name="contract_id"/>
+        <field name="owner_id"/>
+        
+        <filter string="Nháp" name="draft" domain="[('state', '=', 'draft')]"/>
+        <filter string="Hiệu lực" name="active" domain="[('state', '=', 'active')]"/>
+        <filter string="Hủy" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+        
+        <separator/>
+        <filter string="Của tôi" name="my_appendices" domain="[('owner_id', '=', uid)]"/>
+        
+        <group expand="0" string="Nhóm theo">
+          <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+          <filter string="Hợp đồng" name="group_contract" context="{'group_by': 'contract_id'}"/>
+          <filter string="Loại phụ lục" name="group_type" context="{'group_by': 'appendix_type'}"/>
+          <filter string="Người phụ trách" name="group_owner" context="{'group_by': 'owner_id'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+</odoo>
+

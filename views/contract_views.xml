@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <!-- Menu Structure -->
+  <menuitem id="menu_contract_root" name="Hợp đồng" sequence="10" web_icon="contract_mgmt,static/description/icon.png"/>
+  
+  <menuitem id="menu_contract_management" name="Quản lý hợp đồng" parent="menu_contract_root" sequence="10"/>
+  
+  <!-- Contract Actions -->
+  <record id="action_contract_list" model="ir.actions.act_window">
+    <field name="name">Hợp đồng bán hàng</field>
+    <field name="res_model">contract.contract</field>
+    <field name="view_mode">list,form</field>
+    <field name="help" type="html">
+      <p class="o_view_nocontent_smiling_face">Tạo mới hợp đồng bán hàng</p>
+      <p>Quản lý hợp đồng bán hàng với bệnh viện và các khoa/phòng.</p>
+    </field>
+  </record>
+  
+  <menuitem id="menu_contract" name="Hợp đồng" parent="menu_contract_management" action="action_contract_list" sequence="10"/>
+
+  <!-- Contract List View -->
+  <record id="view_contract_list" model="ir.ui.view">
+    <field name="name">contract.contract.list</field>
+    <field name="model">contract.contract</field>
+    <field name="arch" type="xml">
+      <list>
+        <field name="contract_number"/>
+        <field name="name"/>
+        <field name="partner_company_id"/>
+        <field name="partner_department_id"/>
+        <field name="contract_date"/>
+        <field name="end_date"/>
+        <field name="amount_total"/>
+        <field name="state" widget="badge" decoration-success="state == 'active'" decoration-info="state == 'draft'" decoration-muted="state == 'expired'" decoration-danger="state == 'cancelled'"/>
+        <field name="responsible_user_id" widget="many2one_avatar_user"/>
+      </list>
+    </field>
+  </record>
+
+  <!-- Contract Form View -->
+  <record id="view_contract_form" model="ir.ui.view">
+    <field name="name">contract.contract.form</field>
+    <field name="model">contract.contract</field>
+    <field name="arch" type="xml">
+      <form string="Hợp đồng bán hàng">
+        <header>
+          <button name="action_set_active" string="Kích hoạt" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+          <button name="action_set_expired" string="Hết hạn" type="object" invisible="state != 'active'"/>
+          <button name="action_cancel" string="Hủy" type="object" invisible="state in ['cancelled', 'expired']"/>
+          <field name="state" widget="statusbar" statusbar_visible="draft,active,expired"/>
+        </header>
+        
+        <sheet>
+          <div class="oe_button_box" name="button_box">
+            <button name="action_view_appendices" type="object" class="oe_stat_button" icon="fa-files-o">
+              <field name="appendix_count" widget="statinfo" string="Phụ lục"/>
+            </button>
+          </div>
+          
+          <div class="oe_title">
+            <h1>
+              <field name="contract_number" readonly="1"/>
+            </h1>
+            <label for="name" string="Tên hợp đồng"/>
+            <h2>
+              <field name="name" placeholder="Ví dụ: Cung cấp thiết bị Monitor - BV 115"/>
+            </h2>
+          </div>
+          
+          <group>
+            <group string="Pháp nhân (Bên bán)">
+              <field name="company_id" options="{'no_create': True}"/>
+              <field name="company_signatory_id"/>
+              <field name="responsible_user_id"/>
+              <field name="contract_date"/>
+              <field name="start_date"/>
+              <field name="end_date"/>
+              <field name="extension_days"/>
+              <field name="service_category"/>
+            </group>
+            
+            <group string="Khách hàng (Bên mua)">
+              <field name="partner_company_id"/>
+              <field name="partner_department_id"/>
+              <field name="department_representative"/>
+              <field name="partner_phone"/>
+              <field name="partner_email"/>
+              <field name="investor_id"/>
+              <field name="investor_representative"/>
+              <field name="investor_position"/>
+            </group>
+          </group>
+          
+          <group>
+            <group string="Hồ sơ thầu">
+              <field name="tender_code"/>
+              <field name="bid_notice_no"/>
+            </group>
+            <group string="Giá trị">
+              <field name="currency_id" invisible="1"/>
+              <field name="amount_total" widget="monetary"/>
+              <field name="duration_days"/>
+            </group>
+          </group>
+          
+          <notebook>
+            <page string="Đơn bán &amp; Liên kết" name="sale_orders">
+              <group>
+                <group string="Đơn bán">
+                  <field name="sale_order_id"/>
+                  <field name="sale_order_ids" widget="many2many_tags"/>
+                </group>
+                <group string="Hồ sơ &amp; liên kết">
+                  <field name="bidding_link" widget="url"/>
+                  <field name="contract_link" widget="url"/>
+                  <field name="appendix_link" widget="url"/>
+                </group>
+              </group>
+              <group>
+                <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+              </group>
+            </page>
+            
+            <page string="Sản phẩm" name="products">
+              <field name="contract_line_ids">
+                <list editable="bottom">
+                  <field name="sequence" widget="handle"/>
+                  <field name="product_id"/>
+                  <field name="name"/>
+                  <field name="manufacturer_id"/>
+                  <field name="origin_country_id"/>
+                  <field name="product_code"/>
+                  <field name="hs_code"/>
+                  <field name="uom_id"/>
+                  <field name="quantity"/>
+                  <field name="currency_id" column_invisible="1"/>
+                  <field name="price_unit" widget="monetary"/>
+                  <field name="price_subtotal" widget="monetary" sum="Tổng cộng"/>
+                  <field name="sale_order_id"/>
+                </list>
+              </field>
+            </page>
+            
+            <page string="Theo dõi &amp; Chứng từ" name="tracking">
+              <group string="Biên bản">
+                <group>
+                  <field name="delivery_date"/>
+                  <field name="acceptance_date"/>
+                  <field name="liquidation_date"/>
+                </group>
+              </group>
+              
+              <group string="File biên bản">
+                <group>
+                  <field name="handover_link" widget="url"/>
+                  <field name="handover_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </group>
+                <group>
+                  <field name="acceptance_link" widget="url"/>
+                  <field name="acceptance_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </group>
+                <group>
+                  <field name="liquidation_link" widget="url"/>
+                  <field name="liquidation_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                </group>
+              </group>
+              
+              <group string="Bảo hành &amp; Hóa đơn">
+                <group>
+                  <field name="warranty_months"/>
+                  <field name="invoice_number"/>
+                  <field name="invoice_issue_date"/>
+                </group>
+              </group>
+              
+              <group string="Liên hệ &amp; Ảnh hưởng">
+                <group>
+                  <field name="contact_person_id"/>
+                  <field name="contact_job_title"/>
+                  <field name="contact_phone"/>
+                  <field name="contact_email"/>
+                </group>
+                <group>
+                  <field name="budget_influence_level"/>
+                  <field name="medical_association_role"/>
+                  <field name="support_level"/>
+                  <field name="specialty_field"/>
+                </group>
+              </group>
+            </page>
+            
+            <page string="Ghi chú &amp; Nhật ký" name="notes">
+              <group string="Lịch sử &amp; Phản hồi">
+                <field name="interaction_history" nolabel="1" placeholder="Tóm tắt lịch sử làm việc..."/>
+                <field name="customer_feedback" nolabel="1" placeholder="Ý kiến từ bệnh viện..."/>
+                <field name="commitment_note" nolabel="1" placeholder="Cam kết / đề xuất..."/>
+              </group>
+              
+              <group string="Hệ thống theo dõi">
+                <group>
+                  <field name="last_update_date" readonly="1"/>
+                  <field name="updated_by" readonly="1"/>
+                </group>
+              </group>
+              
+              <group string="Ghi chú nội bộ">
+                <field name="private_note" nolabel="1" placeholder="Ghi chú chỉ nội bộ xem được..."/>
+              </group>
+            </page>
+          </notebook>
+        </sheet>
+        
+        <div class="oe_chatter">
+          <field name="message_follower_ids"/>
+          <field name="activity_ids"/>
+          <field name="message_ids"/>
+        </div>
+      </form>
+    </field>
+  </record>
+
+  <!-- Contract Search View -->
+  <record id="view_contract_search" model="ir.ui.view">
+    <field name="name">contract.contract.search</field>
+    <field name="model">contract.contract</field>
+    <field name="arch" type="xml">
+      <search>
+        <field name="contract_number"/>
+        <field name="name"/>
+        <field name="partner_company_id"/>
+        <field name="partner_department_id"/>
+        <field name="responsible_user_id"/>
+        
+        <filter string="Nháp" name="draft" domain="[('state', '=', 'draft')]"/>
+        <filter string="Hiệu lực" name="active" domain="[('state', '=', 'active')]"/>
+        <filter string="Hết hạn" name="expired" domain="[('state', '=', 'expired')]"/>
+        
+        <separator/>
+        <filter string="Của tôi" name="my_contracts" domain="[('responsible_user_id', '=', uid)]"/>
+        
+        <group expand="0" string="Nhóm theo">
+          <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
+          <filter string="Bệnh viện" name="group_partner" context="{'group_by': 'partner_company_id'}"/>
+          <filter string="Người phụ trách" name="group_user" context="{'group_by': 'responsible_user_id'}"/>
+          <filter string="Loại hợp đồng" name="group_category" context="{'group_by': 'service_category'}"/>
+        </group>
+      </search>
+    </field>
+  </record>
+
+</odoo>
+
